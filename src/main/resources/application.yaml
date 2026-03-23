@@ -1,3 +1,65 @@
+# ============================================================
+# APPLICATION CONFIGURATION
+# ============================================================
 spring:
   application:
     name: attendly_backend
+    version: 0.0.1
+  profiles:
+    active: dev
+
+
+# ============================================================
+# DEVELOPMENT PROFILE (dev)
+# Database: H2 (In-Memory)
+# Port: 8080
+# Auto-Restart: Enabled
+# ============================================================
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:attendlydb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+  devtools:
+    restart:
+      enabled: true
+
+server:
+  port: 8080
+
+jwt:
+  secret: dev-attendly-super-secret-key-change-in-production
+  expiration-ms: 3600000
+
+# ============================================================
+# PRODUCTION PROFILE (prod)
+# Database: PostgreSQL
+# Port: 1999
+# Auto-Restart: Disabled
+# ============================================================
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://localhost:5432/attendlydb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: 1999
