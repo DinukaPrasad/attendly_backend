@@ -37,7 +37,7 @@ public class AuthService {
                 claims.put("name", loginUser.getName());
 
                 String token = jwtTokenProvider.generateToken(loginUser.getEmail(), claims);
-                return new AuthResponse(token, "Login successful!");
+                return new AuthResponse(token, "Login successful!", loginUser.getRole());
             } else {
                 throw new IllegalArgumentException("Invalid email or password");
             }
