@@ -1,4 +1,4 @@
-package com.attendly.attendly_backend.model;
+package com.attendly.attendly_backend.modules.user.model;
 
 import jakarta.persistence.*;
 

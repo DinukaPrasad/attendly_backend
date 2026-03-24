@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.attendly.attendly_backend.model.User;
 import com.attendly.attendly_backend.modules.user.dto.CreateUserRequest;
 import com.attendly.attendly_backend.modules.user.dto.UpdateUserRequest;
 import com.attendly.attendly_backend.modules.user.dto.UserResponse;
-import com.attendly.attendly_backend.repository.UserRepository;
+import com.attendly.attendly_backend.modules.user.model.User;
+import com.attendly.attendly_backend.modules.user.repo.UserRepository;
 
 @Service
 public class UserService {

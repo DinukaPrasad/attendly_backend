@@ -5,10 +5,10 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.attendly.attendly_backend.model.User;
 import com.attendly.attendly_backend.modules.user.dto.AuthResponse;
 import com.attendly.attendly_backend.modules.user.dto.LoginRequest;
-import com.attendly.attendly_backend.repository.UserRepository;
+import com.attendly.attendly_backend.modules.user.model.User;
+import com.attendly.attendly_backend.modules.user.repo.UserRepository;
 import com.attendly.attendly_backend.security.JwtTokenProvider;
 
 @Service
