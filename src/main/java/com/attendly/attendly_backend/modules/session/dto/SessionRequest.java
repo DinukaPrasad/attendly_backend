@@ -23,7 +23,7 @@ public class SessionRequest {
     @NotBlank(message = "End time is required")
     private String endTime;
 
-    @NotBlank(message = "Status is required zzzzzz ")
+    @NotBlank(message = "Status is required")
     private String sessionStatus;
 
     @NotBlank(message = "Code is required")
