@@ -40,7 +40,7 @@ public class ProgrammeService {
 
         Programme programme = new Programme();
         programme.setCode(request.getCode());
-        programme.setName(request.getTitle());
+        programme.setName(request.getName());
         programme.setDescription(request.getDescription());
 
         programme = programmeRepository.save(programme);
@@ -66,8 +66,8 @@ public class ProgrammeService {
             programme.setCode(request.getCode());
             hasUpdates = true;
         }
-        if (isValid(request.getTitle())) {
-            programme.setName(request.getTitle());
+        if (isValid(request.getName())) {
+            programme.setName(request.getName());
             hasUpdates = true;
         }
         if (isValid(request.getDescription())) {
@@ -103,7 +103,7 @@ public class ProgrammeService {
         log.info("Converting programme to response with id: {}", programme.getId());
 
         return ProgrammeResponse.builder()
-                .title(programme.getName())
+            .name(programme.getName())
                 .description(programme.getDescription())
                 .code(programme.getCode())
                 .build();
