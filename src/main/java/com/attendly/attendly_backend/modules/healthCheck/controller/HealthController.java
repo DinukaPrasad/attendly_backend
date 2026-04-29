@@ -1,4 +1,4 @@
-package com.attendly.attendly_backend.modules.healthCheck;
+package com.attendly.attendly_backend.modules.healthCheck.controller;
 
 import java.util.HashMap;
 import java.util.Map;
