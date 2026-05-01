@@ -54,6 +54,10 @@ public class JwtTokenProvider {
         }
     }
 
+    public Object getClaim(String token, String claimName) {
+        return parseClaims(token).get(claimName);
+    }
+
     private Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)

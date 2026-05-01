@@ -2,7 +2,9 @@ package com.attendly.attendly_backend.modules.user.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.attendly.attendly_backend.modules.user.dto.AuthResponse;
@@ -16,10 +18,13 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, JwtTokenProvider jwtTokenProvider) {
+    public AuthService(UserRepository userRepository, JwtTokenProvider jwtTokenProvider,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
@@ -29,8 +34,9 @@ public class AuthService {
         }
 
         try {
-            User loginUser = userRepository.findByEmail(loginRequest.getEmail());
-            if (loginUser != null && loginUser.getPassword().equals(loginRequest.getPassword())) {
+            Optional<User> loginUserOpt = userRepository.findByEmail(loginRequest.getEmail());
+            if (loginUserOpt.isPresent() && passwordEncoder.matches(loginRequest.getPassword(), loginUserOpt.get().getPassword())) {
+                User loginUser = loginUserOpt.get();
                 Map<String, Object> claims = new HashMap<>();
                 claims.put("userId", loginUser.getId());
                 claims.put("role", loginUser.getRole());

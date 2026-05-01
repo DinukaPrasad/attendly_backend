@@ -1,37 +1,54 @@
 package com.attendly.attendly_backend.modules.session.model;
 
+import com.attendly.attendly_backend.modules.programme.model.Programme;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sessions")
-@Data // @Getter + @Setter + @ToString + @EqualsAndHashCode
-@NoArgsConstructor // JPA needs this! ⚠️
-@AllArgsConstructor // All fields constructor
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Session {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "programme_id", nullable = false)
+    private Programme programme;
+
     private String module;
     private String lecturer;
     private String title;
     private String description;
     private String venue;
-    private String startTime;
-    private String endTime;
+
+    @Column(nullable = false)
+    private LocalDateTime startTime;
+
+    @Column(nullable = false)
+    private LocalDateTime endTime;
+
     private String sessionStatus;
     private boolean attendanceStatus;
     private String code;
 
-    @CreationTimestamp // ✅ Auto set when created
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp // ✅ Auto set when updated
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

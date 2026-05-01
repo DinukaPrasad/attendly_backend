@@ -6,9 +6,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.attendly.attendly_backend.modules.programme.model.Programme;
+import com.attendly.attendly_backend.modules.programme.repo.ProgrammeRepository;
 import com.attendly.attendly_backend.modules.session.dto.*;
 import com.attendly.attendly_backend.modules.session.model.Session;
 import com.attendly.attendly_backend.modules.session.repo.SessionRepository;
+import com.attendly.attendly_backend.utility.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SessionService {
 
     private final SessionRepository sessionRepository;
+    private final ProgrammeRepository programmeRepository;
 
     public List<SessionResponse> getAllSessions() {
 
@@ -30,14 +34,22 @@ public class SessionService {
         return sessions;
     }
 
-    public SessionResponse createSession(SessionRequest request) {
+    public ApiResponse<SessionResponse> createSession(SessionRequest request) {
         if (request == null) {
             log.error("Failed to create session: SessionRequest is null");
             throw new IllegalArgumentException("Session data must not be null");
         }
         log.info("Creating session with data: {}", request);
 
+        Programme programme = programmeRepository.findById(request.getProgrammeId())
+                .orElse(null);
+        if (programme == null) {
+            log.error("Failed to create session: Programme not found with id: {}", request.getProgrammeId());
+            return ApiResponse.error("Programme not found with id: " + request.getProgrammeId());
+        }
+
         Session session = new Session();
+        session.setProgramme(programme);
         session.setModule(request.getModule());
         session.setLecturer(request.getLecturer());
         session.setTitle(request.getTitle());
@@ -52,7 +64,7 @@ public class SessionService {
         session = sessionRepository.save(session);
 
         log.info("Session created successfully with id: {}", session.getId());
-        return convertSessionToSessionResponse(session);
+        return ApiResponse.success("Session created successfully", convertSessionToSessionResponse(session));
     }
 
     public SessionResponse updateSessionById(Long id, SessionRequest request) {
@@ -84,11 +96,11 @@ public class SessionService {
             session.setDescription(request.getDescription());
             hasUpdates = true;
         }
-        if (isValid(request.getStartTime())) {
+        if (request.getStartTime() != null) {
             session.setStartTime(request.getStartTime());
             hasUpdates = true;
         }
-        if (isValid(request.getEndTime())) {
+        if (request.getEndTime() != null) {
             session.setEndTime(request.getEndTime());
             hasUpdates = true;
         }

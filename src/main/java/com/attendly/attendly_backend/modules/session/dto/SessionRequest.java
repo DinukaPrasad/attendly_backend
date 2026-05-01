@@ -1,10 +1,17 @@
 package com.attendly.attendly_backend.modules.session.dto;
 
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data // @Getter + @Setter + @ToString + @EqualsAndHashCode
 public class SessionRequest {
+    @NotNull(message = "Programme ID is required")
+    private Long programmeId;
+
     @NotBlank(message = "Module is required")
     private String module;
 
@@ -17,11 +24,13 @@ public class SessionRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank(message = "Start time is required")
-    private String startTime;
+    @NotNull(message = "Start time is required")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime startTime;
 
-    @NotBlank(message = "End time is required")
-    private String endTime;
+    @NotNull(message = "End time is required")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime endTime;
 
     @NotBlank(message = "Status is required")
     private String sessionStatus;

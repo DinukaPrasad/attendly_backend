@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.attendly.attendly_backend.modules.user.dto.CreateUserRequest;
@@ -11,14 +12,17 @@ import com.attendly.attendly_backend.modules.user.dto.UpdateUserRequest;
 import com.attendly.attendly_backend.modules.user.dto.UserResponse;
 import com.attendly.attendly_backend.modules.user.model.User;
 import com.attendly.attendly_backend.modules.user.repo.UserRepository;
+import com.attendly.attendly_backend.utility.ApiResponse;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponse> getAllUsers() {
@@ -34,16 +38,19 @@ public class UserService {
         return convertUserToUserResponse(user);
     }
 
-    public UserResponse createUser(CreateUserRequest user) {
+    public ApiResponse<UserResponse> createUser(CreateUserRequest user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            return ApiResponse.error("Email already registered");
+        }
+
         User newUser = new User();
         newUser.setName(user.getName());
         newUser.setEmail(user.getEmail());
-        newUser.setPassword(user.getPassword());
+        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser.setRole(user.getRole());
 
         User savedUser = userRepository.save(newUser);
-        return convertUserToUserResponse(savedUser);
-
+        return ApiResponse.success("User created successfully", convertUserToUserResponse(savedUser));
     }
 
     public void deleteUserById(Long id) {

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw test-compile *)",
+      "Bash(./mvnw test *)",
+      "Bash(jar -tf ~/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/4.0.3/spring-boot-test-autoconfigure-4.0.3.jar)",
+      "Bash(./mvnw clean *)"
+    ]
+  }
+}

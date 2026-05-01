@@ -1,39 +1,62 @@
 # Attendly Backend
 
-A RESTful API backend for the **Attendly** attendance management system, built with Spring Boot. Designed to manage academic programmes, sessions, and users with JWT-based authentication.
+Professional, academic-level REST API backend for the Attendly attendance management system. The project implements secure user management, academic programme handling, session scheduling, attendance recording, and notification workflows using Spring Boot with JWT-based authentication and role-based access control.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Project Overview](#project-overview)
+- [Branch Status](#branch-status)
+- [Key Features](#key-features)
+- [Architecture Summary](#architecture-summary)
 - [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Running in Development](#running-in-development)
-  - [Running in Production](#running-in-production)
+  - [Development Setup](#development-setup)
+  - [Production Setup](#production-setup)
 - [Configuration](#configuration)
-- [API Reference](#api-reference)
-  - [Authentication](#authentication)
-  - [Users](#users)
-  - [Programmes](#programmes)
-  - [Sessions](#sessions)
-  - [Health Check](#health-check)
-- [Data Models](#data-models)
+- [Security Model](#security-model)
+- [API Summary](#api-summary)
+- [Data Models (Core)](#data-models-core)
 - [Response Format](#response-format)
+- [Testing](#testing)
 - [Profiles](#profiles)
 
 ---
 
-## Overview
+## Project Overview
 
-Attendly Backend provides the server-side logic for an attendance tracking platform used in educational institutions. It exposes a set of REST endpoints to manage:
+Attendly Backend provides the server-side logic for a university attendance platform. It exposes REST endpoints to manage users, academic programmes, sessions, attendance records, and notifications. The system emphasizes security, clean architecture, and consistent API responses suitable for integration with web or mobile clients.
 
-- **Users** — registration, retrieval, updates, and deletion
-- **Authentication** — JWT-based login flow with role claims
-- **Programmes** — academic programme records
-- **Sessions** — lecture/session scheduling and status tracking
+---
+
+## Branch Status
+
+The `main` branch is intentionally behind the latest work. Use the `Final_modification` branch to see the final output for the assignment. I am still actively developing the project, so I have not merged `Final_modification` into `main`. This branch was created specifically for assignment submission and evaluation.
+
+---
+
+## Key Features
+
+- JWT-based authentication with role claims and stateless authorization
+- Role-based access control (ADMIN, LECTURER, STUDENT)
+- Public user registration endpoint for onboarding
+- Academic programme and session management
+- Attendance recording with programme and user validation
+- Notification system with unread/read status tracking
+- Standardized API response envelope for predictable client parsing
+- Structured logging in service layers using SLF4J
+
+---
+
+## Architecture Summary
+
+- **Layered architecture**: Controller → Service → Repository → Entity/DTO
+- **Feature-driven modules**: user, programme, session, attendance, notification, healthCheck
+- **Global error handling**: centralized exception responses for validation and not-found cases
+- **Security filter chain**: JWT auth filter + custom 401/403 JSON handlers
+- **Profiles**: dev (H2) and prod (PostgreSQL)
 
 ---
 
@@ -49,66 +72,8 @@ Attendly Backend provides the server-side logic for an attendance tracking platf
 | Database (prod) | PostgreSQL |
 | Authentication | JWT (JJWT 0.12.6) |
 | Validation | Jakarta Bean Validation |
+| Logging | SLF4J + Logback |
 | Utilities | Lombok |
-
----
-
-## Project Structure
-
-```
-src/main/java/com/attendly/attendly_backend/
-├── AttendlyBackendApplication.java
-├── exception/
-│   └── GlobalExceptionHandler.java
-├── modules/
-│   ├── healthCheck/
-│   │   └── HealthController.java
-│   ├── user/
-│   │   ├── controller/
-│   │   │   ├── AuthController.java
-│   │   │   └── UserController.java
-│   │   ├── service/
-│   │   │   ├── AuthService.java
-│   │   │   └── UserService.java
-│   │   ├── model/
-│   │   │   └── User.java
-│   │   ├── dto/
-│   │   │   ├── AuthResponse.java
-│   │   │   ├── CreateUserRequest.java
-│   │   │   ├── LoginRequest.java
-│   │   │   ├── UpdateUserRequest.java
-│   │   │   └── UserResponse.java
-│   │   └── repo/
-│   │       └── UserRepository.java
-│   ├── programme/
-│   │   ├── controller/
-│   │   │   └── ProgrammeController.java
-│   │   ├── service/
-│   │   │   └── ProgrammeService.java
-│   │   ├── model/
-│   │   │   └── Programme.java
-│   │   ├── dto/
-│   │   │   ├── CreateProgrammeRequest.java
-│   │   │   └── ProgrammeResponse.java
-│   │   └── repo/
-│   │       └── ProgrammeRepository.java
-│   └── session/
-│       ├── controller/
-│       │   └── SessionController.java
-│       ├── service/
-│       │   └── SessionService.java
-│       ├── model/
-│       │   └── Session.java
-│       ├── dto/
-│       │   ├── SessionRequest.java
-│       │   └── SessionResponse.java
-│       └── repo/
-│           └── SessionRepository.java
-├── security/
-│   └── JwtTokenProvider.java
-└── utility/
-    └── ApiResponse.java
-```
 
 ---
 
@@ -120,50 +85,46 @@ src/main/java/com/attendly/attendly_backend/
 - Maven 3.9+ (or use the included `mvnw` wrapper)
 - PostgreSQL (for production profile only)
 
-### Running in Development
+### Development Setup
 
-The dev profile uses an H2 in-memory database — no external database setup required.
+The dev profile uses an H2 in-memory database (no external DB required).
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd attendly_backend
-
-# Run using the Maven wrapper
 ./mvnw spring-boot:run
 ```
 
-The server starts on **port 8080** by default.
+- Base URL: `http://localhost:8080/api`
+- H2 Console: `http://localhost:8080/h2-console`
+  - JDBC URL: `jdbc:h2:mem:attendlydb`
+  - Username: `sa`
+  - Password: (leave empty)
 
-Access the H2 console at: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:attendlydb`
-- Username: `sa`
-- Password: *(leave empty)*
-
-### Running in Production
+### Production Setup
 
 1. Ensure PostgreSQL is running on `localhost:5432` with a database named `attendlydb`.
-
-2. Set the active profile to `prod`:
+2. Set the active profile and secrets:
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_PASSWORD=<postgres-password>
+JWT_SECRET=<strong-random-secret>
 ```
 
-Or set the environment variable:
+3. Run:
 
 ```bash
-export SPRING_PROFILES_ACTIVE=prod
 ./mvnw spring-boot:run
 ```
 
-The production server starts on **port 1999**.
+- Base URL: `http://localhost:1999/api`
 
 ---
 
 ## Configuration
 
-All configuration is in `src/main/resources/application.yaml`.
+Primary configuration lives in `src/main/resources/application.yaml` and defines dev/prod profiles.
 
 | Property | Dev Value | Prod Value |
 |---|---|---|
@@ -171,175 +132,88 @@ All configuration is in `src/main/resources/application.yaml`.
 | `spring.datasource.url` | `jdbc:h2:mem:attendlydb` | `jdbc:postgresql://localhost:5432/attendlydb` |
 | `spring.datasource.username` | `sa` | `postgres` |
 | `spring.jpa.hibernate.ddl-auto` | `create-drop` | `validate` |
-| `jwt.expiration` | `3600000` (1 hour) | `3600000` (1 hour) |
+| `jwt.expiration-ms` | `3600000` (1 hour) | `3600000` (1 hour) |
 
-> **Important:** Replace `jwt.secret` with a strong, unique secret before deploying to production.
-
----
-
-## API Reference
-
-All endpoints are prefixed with `/api`. All responses follow the [standard response format](#response-format).
-
-### Authentication
-
-#### Login
-
-```
-POST /api/auth/login
-```
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "<JWT>",
-    "role": "ADMIN",
-    "message": "Login successful"
-  },
-  "timestamp": "2026-03-27T10:00:00"
-}
-```
+Important: Always override `jwt.secret` in production via environment variables or a secret manager.
 
 ---
 
-### Users
+## Security Model
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/users` | Create a new user |
-| `GET` | `/api/users` | Get all users |
-| `GET` | `/api/users/{id}` | Get a user by ID |
-| `PUT` | `/api/users/{id}` | Update a user |
-| `DELETE` | `/api/users/{id}` | Delete a user |
-
-**Create User — Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "securepassword",
-  "role": "STUDENT"
-}
-```
-
-**Update User — Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "role": "LECTURER"
-}
-```
+- **Authentication**: JWT issued on login; includes role and user claims
+- **Authorization**: `@PreAuthorize` on controllers with role checks
+- **Public endpoints**: `/api/auth/**`, `/api/health/**`, and `POST /api/users`
+- **Custom error handlers**: JSON responses for 401 (unauthorized) and 403 (forbidden)
 
 ---
 
-### Programmes
+## API Summary
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/programmes` | Get all programmes |
-| `POST` | `/api/programmes` | Create a programme |
-| `PUT` | `/api/programmes/{id}` | Update a programme |
-| `DELETE` | `/api/programmes/{id}` | Delete a programme |
+Base URL: `/api`
 
-**Create / Update Programme — Request Body:**
-```json
-{
-  "code": "CS101",
-  "name": "Computer Science",
-  "description": "Bachelor of Science in Computer Science"
-}
-```
+**Authentication**
+- `POST /auth/login`
 
----
+**Users**
+- `POST /users` (public registration)
+- `GET /users`
+- `GET /users/{id}`
+- `PUT /users/{id}`
+- `DELETE /users/{id}`
 
-### Sessions
+**Programmes**
+- `GET /programmes`
+- `POST /programmes`
+- `PUT /programmes/{id}`
+- `DELETE /programmes/{id}`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/sessions` | Get all sessions |
-| `POST` | `/api/sessions` | Create a session |
-| `PUT` | `/api/sessions/{id}` | Update a session |
-| `DELETE` | `/api/sessions/{id}` | Delete a session |
+**Sessions**
+- `GET /sessions`
+- `POST /sessions`
+- `PUT /sessions/{id}`
+- `DELETE /sessions/{id}`
 
-**Create / Update Session — Request Body:**
-```json
-{
-  "module": "Introduction to Algorithms",
-  "lecturer": "Dr. Smith",
-  "title": "Lecture 01 — Sorting Algorithms",
-  "description": "Overview of sorting algorithms and their time complexity",
-  "venue": "Room A101",
-  "startTime": "09:00",
-  "endTime": "11:00",
-  "sessionStatus": "SCHEDULED",
-  "code": "CS101-L01"
-}
-```
+**Attendance**
+- `POST /attendance`
+- `GET /attendance`
+- `GET /attendance/{id}`
+- `GET /attendance/user/{userId}`
+- `GET /attendance/programme/{programmeId}`
+- `PUT /attendance/{id}`
+- `DELETE /attendance/{id}`
 
----
+**Notifications**
+- `POST /notifications`
+- `GET /notifications`
+- `GET /notifications/{id}`
+- `GET /notifications/recipient/{recipientId}`
+- `GET /notifications/sender/{senderId}`
+- `GET /notifications/unread/{recipientId}`
+- `PUT /notifications/{id}/read`
+- `DELETE /notifications/{id}`
 
-### Health Check
-
-```
-GET /api/health
-```
-
-Returns the current health status of the application.
+**Health Check**
+- `GET /health`
 
 ---
 
-## Data Models
+## Data Models (Core)
 
-### User
+**User**
+- `id`, `name`, `email`, `password`, `role`
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | Long | Auto-generated primary key |
-| `name` | String | Full name |
-| `email` | String | Unique identifier for login |
-| `password` | String | User password |
-| `role` | String | e.g., `ADMIN`, `LECTURER`, `STUDENT` |
+**Programme**
+- `id`, `code`, `name`, `description`, `createdAt`, `updatedAt`
 
-### Programme
+**Session**
+- `id`, `programme`, `module`, `lecturer`, `title`, `description`, `venue`
+- `startTime`, `endTime`, `sessionStatus`, `code`, `attendanceStatus`
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | Long | Auto-generated primary key |
-| `code` | String | Unique programme code |
-| `name` | String | Programme name |
-| `description` | String | Programme description |
-| `createdAt` | LocalDateTime | Set on creation, not updatable |
-| `updatedAt` | LocalDateTime | Updated on every save |
+**Attendance**
+- `id`, `user`, `programme`, `time`, `status`, `createdAt`
 
-### Session
-
-| Field | Type | Notes |
-|---|---|---|
-| `id` | Long | Auto-generated primary key |
-| `module` | String | Module name |
-| `lecturer` | String | Lecturer name |
-| `title` | String | Session title |
-| `description` | String | Session description |
-| `venue` | String | Physical or virtual location |
-| `startTime` | String | Session start time |
-| `endTime` | String | Session end time |
-| `sessionStatus` | String | e.g., `SCHEDULED`, `ONGOING`, `COMPLETED` |
-| `code` | String | Session code |
-| `attendanceStatus` | Boolean | Whether attendance has been taken |
-| `createdAt` | LocalDateTime | Set on creation |
-| `updatedAt` | LocalDateTime | Updated on every save |
+**Notification**
+- `id`, `sender`, `recipient`, `content`, `datetime`, `status`
 
 ---
 
@@ -352,26 +226,28 @@ All endpoints return a consistent response envelope:
   "success": true,
   "message": "Operation completed successfully",
   "data": {},
-  "timestamp": "2026-03-27T10:00:00"
+  "timestamp": "2026-05-01T10:00:00"
 }
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `success` | Boolean | `true` for successful operations, `false` on errors |
-| `message` | String | Human-readable status message |
-| `data` | Object / Array / null | Returned payload |
-| `timestamp` | String | ISO-8601 datetime of the response |
-
-### Error Response Example
+Error response example:
 
 ```json
 {
   "success": false,
   "message": "Resource not found",
-  "data": null,
-  "timestamp": "2026-03-27T10:00:00"
+  "timestamp": "2026-05-01T10:00:00"
 }
+```
+
+---
+
+## Testing
+
+Run the test suite with:
+
+```bash
+./mvnw test
 ```
 
 ---
@@ -380,17 +256,11 @@ All endpoints return a consistent response envelope:
 
 | Profile | Database | Port | DDL Mode | Use Case |
 |---|---|---|---|---|
-| `dev` *(default)* | H2 in-memory | 8080 | `create-drop` | Local development |
+| `dev` (default) | H2 in-memory | 8080 | `create-drop` | Local development |
 | `prod` | PostgreSQL | 1999 | `validate` | Production deployment |
 
-To switch profiles, set the environment variable:
+To switch profiles:
 
 ```bash
-export SPRING_PROFILES_ACTIVE=prod
-```
-
-Or pass it as a JVM argument:
-
-```bash
-java -Dspring.profiles.active=prod -jar attendly_backend.jar
+SPRING_PROFILES_ACTIVE=prod
 ```

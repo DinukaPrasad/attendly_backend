@@ -3,6 +3,7 @@ package com.attendly.attendly_backend.modules.session.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,19 +29,21 @@ public class SessionController {
     private final SessionService sessionService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT','LECTURER')")
     public ResponseEntity<ApiResponse<List<SessionResponse>>> getAllSessions() {
         List<SessionResponse> sessions = sessionService.getAllSessions();
         return ResponseEntity.ok(ApiResponse.success("Sessions retrieved successfully", sessions));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','LECTURER')")
     public ResponseEntity<ApiResponse<SessionResponse>> createSession(
             @Valid @RequestBody SessionRequest sessionRequest) {
-        SessionResponse session = sessionService.createSession(sessionRequest);
-        return ResponseEntity.ok(ApiResponse.success("Session created successfully", session));
+        return ResponseEntity.ok(sessionService.createSession(sessionRequest));
     }
 
     @PostMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','LECTURER')")
     public ResponseEntity<ApiResponse<SessionResponse>> updateSession(@PathVariable Long id,
             @Valid @RequestBody SessionRequest sessionRequest) {
         SessionResponse session = sessionService.updateSessionById(id, sessionRequest);
@@ -48,12 +51,14 @@ public class SessionController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteSession(@PathVariable Long id) {
         sessionService.deleteSessionById(id);
         return ResponseEntity.ok(ApiResponse.success("Session deleted successfully"));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','LECTURER')")
     public ResponseEntity<ApiResponse<SessionResponse>> updateSessionById(@PathVariable Long id,
             @Valid @RequestBody SessionRequest sessionRequest) {
         SessionResponse session = sessionService.updateSessionById(id, sessionRequest);
